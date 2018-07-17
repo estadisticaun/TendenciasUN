@@ -203,27 +203,51 @@ ggplot(data = SBPRO_2017_GEN, aes(y = MOD_INGLES_PUNT, x = fct_reorder(G15, MOD_
         axis.title = element_text(face="bold", color="black", size=16)
   )
 
-#######################################################
-################# ANÁLISIS POR PROGRAMAS ACADÉMICOS
-#######################################################
+####################################################################
+################# ANÁLISIS POR FACULTADES Y PROGRAMAS ACADÉMICOS
+####################################################################
 
 
 QCuantitativo <- SBPRO_2017_GEN %>% 
-  mutate(QRazCuant =  case_when(.$MOD_RAZONA_CUANTITATIVO_PNAL <= 20  ~ "Quintil 1",
-                                .$MOD_RAZONA_CUANTITATIVO_PNAL > 20 & .$MOD_RAZONA_CUANTITATIVO_PNAL <= 40 ~ "Quintil 2",
-                                .$MOD_RAZONA_CUANTITATIVO_PNAL > 40 & .$MOD_RAZONA_CUANTITATIVO_PNAL <= 60 ~ "Quintil 3",
-                                .$MOD_RAZONA_CUANTITATIVO_PNAL > 60 & .$MOD_RAZONA_CUANTITATIVO_PNAL <= 80 ~ "Quintil 4",
-                                TRUE ~ "Quintil 5"
+  mutate(QRazCuant =  case_when(.$MOD_RAZONA_CUANTITATIVO_PNAL <= 20  ~ "Quintil1",
+                                .$MOD_RAZONA_CUANTITATIVO_PNAL > 20 & .$MOD_RAZONA_CUANTITATIVO_PNAL <= 40 ~ "Quintil2",
+                                .$MOD_RAZONA_CUANTITATIVO_PNAL > 40 & .$MOD_RAZONA_CUANTITATIVO_PNAL <= 60 ~ "Quintil3",
+                                .$MOD_RAZONA_CUANTITATIVO_PNAL > 60 & .$MOD_RAZONA_CUANTITATIVO_PNAL <= 80 ~ "Quintil4",
+                                TRUE ~ "Quintil5"
                                 )) %>% 
-  select(G12,G15, ESTU_PRGM_ACADEMICO, QRazCuant) %>% 
+  select(G12,G15, ESTU_SNIES_PRGMACADEMICO, ESTU_PRGM_ACADEMICO, QRazCuant) %>% 
   filter(G12 == "U. Nacional") %>% 
-  group_by(G15, ESTU_PRGM_ACADEMICO, QRazCuant) %>% 
+  group_by(G15, ESTU_SNIES_PRGMACADEMICO, ESTU_PRGM_ACADEMICO, QRazCuant) %>% 
   summarise(Total = n()) %>% spread(QRazCuant, Total) %>% 
-  replace(., is.na(.), 0)
+  replace(., is.na(.), 0) %>% 
+  mutate(Total = Quintil1 + Quintil2 + Quintil3 + Quintil4  + Quintil5) %>% 
+  mutate(Quintil1P = round((Quintil1/Total)*100, 0),
+         Quintil2P = round((Quintil2/Total)*100, 0),
+         Quintil3P = round((Quintil3/Total)*100, 0),
+         Quintil4P = round((Quintil4/Total)*100, 0),
+         Quintil5P = round((Quintil5/Total)*100, 0)) %>% 
+  ungroup() %>% 
+  mutate(G15 = str_replace(G15, "UN-", ""))
+ 
+# Insertar Facultades
+
+Facultades <- read_excel("Datos/Facultades.xlsx")
+
+QCuantitativo <- left_join(QCuantitativo, Facultades, by = "ESTU_SNIES_PRGMACADEMICO")
 
 
 
 
+
+names(SBPRO_2017_GEN)
+
+
+
+names(QCuantitativo)
+
+str_trunc(fruit, 3) 
+
+str_replace(QCuantitativo$G15, "UN-", "") 
 
 
 
